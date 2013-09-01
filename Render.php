@@ -16,15 +16,28 @@ Class Render
   
   function __construct()
   {
-    $this->__link = array();
-    // DEFAULTS
-    $this->__baza = "page";   // defaultne nastavenie bazy
-    $this->__priecinokStranok = "stranky/";
+    /**
+     *  defaultne nastavenie bazy
+     */     
+    $this->__baza = "page";
+    
+    /**
+     *  nastavenie priecinka, kde su pod-stranky umiestnene      
+     */    
+    $this->__priecinokStranok = "stranky";
+    
+    /**
+     *  nazov stranky, ktora obsahuje chybovu hlasku    (napr. chyba.php, 404.php atd)
+     *  klasicka 404 - page not found     
+     */    
     $this->__strankaNenajdena = "chyba";
+    
+    
+    $this->__link = array();
   }
   
   /**
-   * Metóda makeSEO vytvorí seo odkaz z názvu
+   * Metóda vytvorSEO vytvorí seo odkaz z názvu
    */     
   private function vytvorSEO($paOdkaz)
   {
@@ -69,10 +82,15 @@ Class Render
   /**
    * Metóda vytvorLink vytvorí pole odkazov, ktoré sa neskôr budú generovať
    */ 
-  public function vytvorLink($paNazov)
+  public function vytvorLink($paNazov, $paLink = "")
   {
-       $odkaz = $this->vytvorSEO($paNazov);
-       $this->__link[$odkaz] = $paNazov;
+       if($paLink != "")
+       {
+         $this->__link[$paLink] = $paNazov;
+       }else{
+         $odkaz = $this->vytvorSEO($paNazov);
+         $this->__link[$odkaz] = $paNazov;
+       }
   }
   
   /**
@@ -104,14 +122,15 @@ Class Render
   /**
    * Metóda renderSEONavigator vytvorí menu s user-friendly odkazmi    
    */     
-  public function renderSEONavigator()
+  public function renderSEONavigator($paHighlight = true)
   {
     echo "<ul>";
     foreach($this->__link as $odkaz => $nazov)
     {
       if(isSet($_GET[$this->__baza]) && ($_GET[$this->__baza] == $odkaz))
       {
-        echo "<li><a href='".$odkaz."' class='aktivne'>".$nazov."</a></li>";
+        $aktivneCSS = ($paHighlight==true)?"class='aktivne'":'';
+        echo "<li><a href='".$odkaz."' $aktivneCSS>".$nazov."</a></li>";
       }else{
         echo "<li><a href='".$odkaz."'>".$nazov."</a></li>";
       }
