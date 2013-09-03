@@ -1,21 +1,29 @@
 <?php
+include_once "Link.php";
+
 /**
  * TRIEDA: Render.php
  * AUTOR: Lukas Caniga
  * KONTAKT: lukas.caniga(at)gmail.com
  *          http://marbulinek.cekuj.net
  * 
- * LICENCIA: Túto triedu môžete používať, avšak bez MODIFIKÁCIE zdrojového kódu    
+ * LICENCIA: Túto triedu môžete používať, avšak bez MODIFIKÁCIE zdrojového kódu 
+ * VERZIA: 1.4
+ * DÁTUM_VYDANIA: 3.9.2013     
  */ 
 Class Render
 {
-  private $__link;
   private $__baza;
   private $__priecinokStranok;
   private $__strankaNenajdena;
+  private $__cssActive; 
+  
+  private $__zoznamOdkazov;
   
   function __construct()
   {
+    //$__link = new Link();
+    
     /**
      *  defaultne nastavenie bazy
      */     
@@ -32,8 +40,13 @@ Class Render
      */    
     $this->__strankaNenajdena = "chyba";
     
+    /**
+     *  CSS selektor pre nastavenie prave aktivneho odkazu
+     */         
+    $this->__cssActive = "aktivne";
     
-    $this->__link = array();
+    
+    $this->__zoznamOdkazov = array();
   }
   
   /**
@@ -52,6 +65,14 @@ Class Render
      $paOdkaz = trim($paOdkaz,'-');
      
      return $paOdkaz;
+  }
+  
+  /**
+   * Metóda nastavCSSAktivne nastavuje css selektor aktualneho odkazu
+   */     
+  public function nastavCSSAktivne($paSelektor)
+  {
+    $this->__cssActive = $paSelektor;
   }
   
   /**
@@ -86,10 +107,12 @@ Class Render
   {
        if($paLink != "")
        {
-         $this->__link[$paLink] = $paNazov;
+         $tempLink = new Link($paNazov, $paLink);
+         $this->__zoznamOdkazov[] = $tempLink;
        }else{
-         $odkaz = $this->vytvorSEO($paNazov);
-         $this->__link[$odkaz] = $paNazov;
+         $link = $this->vytvorSEO($paNazov);
+         $tempLink = new Link($paNazov, $link);
+         $this->__zoznamOdkazov[] = $tempLink;
        }
   }
   
@@ -100,23 +123,23 @@ Class Render
    */     
   public function renderNavigator($paHighlight = true)
   {
-    echo "<ul>";
-    foreach($this->__link as $odkaz => $nazov)
+    echo "\n<ul>\n";
+    foreach($this->__zoznamOdkazov as $odkaz)
     {
       if(isSet($_GET[$this->__baza]))
       {
-        if($_GET[$this->__baza] == $odkaz)
+        if($_GET[$this->__baza] == $odkaz->dajLink())
         {
-          $aktivneCSS = ($paHighlight==true)?"class='aktivne'":'';
-          echo "<li><a href='?".$this->__baza."=".$odkaz."' $aktivneCSS>".$nazov."</a></li>";
+          $aktivneCSS = ($paHighlight==true)?"class='".$this->__cssActive."'":'';
+          echo "<li><a href='?".$this->__baza."=".$odkaz->dajLink()."' $aktivneCSS>".$odkaz->dajNazov()."</a></li>\n";
         }else{
-          echo "<li><a href='?".$this->__baza."=".$odkaz."'>".$nazov."</a></li>";
+          echo "<li><a href='?".$this->__baza."=".$odkaz->dajLink()."'>".$odkaz->dajNazov()."</a></li>\n";
         }
       }else{
-         echo "<li><a href='?".$this->__baza."=".$odkaz."'>".$nazov."</a></li>"; 
+         echo "<li><a href='?".$this->__baza."=".$odkaz->dajLink()."'>".$odkaz->dajNazov()."</a></li>\n"; 
       }
     }
-    echo "</ul>";
+    echo "</ul>\n";
   }
   
   /**
@@ -124,18 +147,18 @@ Class Render
    */     
   public function renderSEONavigator($paHighlight = true)
   {
-    echo "<ul>";
-    foreach($this->__link as $odkaz => $nazov)
+    echo "\n<ul>\n";
+    foreach($this->__zoznamOdkazov as $odkaz)
     {
-      if(isSet($_GET[$this->__baza]) && ($_GET[$this->__baza] == $odkaz))
+      if(isSet($_GET[$this->__baza]) && ($_GET[$this->__baza] == $odkaz->dajLink()))
       {
-        $aktivneCSS = ($paHighlight==true)?"class='aktivne'":'';
-        echo "<li><a href='".$odkaz."' $aktivneCSS>".$nazov."</a></li>";
+        $aktivneCSS = ($paHighlight==true)?"class='".$this->__cssActive."'":'';
+        echo "<li><a href='/".$$odkaz->dajLink()."' $aktivneCSS>".$odkaz->dajNazov()."</a></li>\n";
       }else{
-        echo "<li><a href='".$odkaz."'>".$nazov."</a></li>";
+        echo "<li><a href='/".$odkaz->dajLink()."'>".$odkaz->dajNazov()."</a></li>\n";
       }
     }
-    echo "</ul>";
+    echo "</ul>\n";
   }
   
   /**
@@ -153,8 +176,8 @@ Class Render
         include $this->__priecinokStranok.$this->__strankaNenajdena.".php";
       }                       
     }else{
-      $tempLinky = array_values($this->__link);
-      include $this->__priecinokStranok."/".$this->vytvorSEO($tempLinky[0]).".php";
+      $link = $this->__zoznamOdkazov[0];
+      include $this->__priecinokStranok.$link->dajLink().".php";
     } 
   }
 
@@ -172,12 +195,13 @@ Class Render
   $Render->nastavBazu("page");
   $Render->nastavPriecinokStranok("stranky");
   $Render->nastavStrankuChyby("chyba");
+  $Render->nastavCSSAktivne("aktivne");
   
   //vygenerujem linky stranky
   $Render->vytvorLink("O jídelně");
   $Render->vytvorLink("Provozní řád");
   $Render->vytvorLink("Ceník stravování");
-  $Render->vytvorLink("Jídelníček");
+  $Render->vytvorLink("Jídelníček", "co-papame");
   $Render->vytvorLink("Kontakt");
   
   //vygenerujem navigator  A)
