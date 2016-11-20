@@ -8,42 +8,41 @@ index.php - main page
 First step - create instance of class Render
 ```php
 <?php
-include_once "Render.php";
+include_once "Core/Render.php";
 $Render = new Render();
 ?>
 ```
 
 ## Optional settings
 
-
 ```php
 <?php
 
 //define base at url bar which will open pages
-$Render->nastavBazu("page"); 
+$Render->SetBase("page");
 
 //name of the dir located at disk which contain pages
-$Render->nastavPriecinokStranok("stranky"); 
+$Render->SetPagesDir("subpagesFolder");
 
 //website defined as fail site - example: 404_page_not_found
-$Render->nastavStrankuChyby("chyba"); 
- 
+$Render->Set404Page("error");
 
-//creating links at documents
-$Render->vytvorLink("O jídelně");
-$Render->vytvorLink("Provozní řád");
-$Render->vytvorLink("Ceník stravování");
-$Render->vytvorLink("Jídelníček");
-$Render->vytvorLink("Kontakt");
+//set css selector for active link
+$Render->SetCSSActive("activeLink");
+ 
+//links
+$Render->CreateLink("Home");
+$Render->CreateLink("About us");
+$Render->CreateLink("Products and services");
+$Render->CreateLink("Contact");
   
-//create navigator  A)
-$Render->renderNavigator();
-  
-//or for support nice url pages .HTACCESS (napr. 'http://example.eu/o-nas') B) 
-$Render->renderSEONavigator();
+//create navigator
+// 2 parameters - highlight  - if you want to use activeLink selector
+//              - SEO -if you want to use nice seo names of links 
+$Render->RenderNavigator();
   
 //rendering menu
-$Render->renderMenu();
+$Render->RenderMenu();
 
 ?>
 ```
